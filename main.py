@@ -87,8 +87,17 @@ CONTENT:
                 # write the file
                 open(filepath, "w").write(full_message_mixed)
 
-            # save email attachment
+            # save png attachments
             elif content_type == "image/png":
+                # download attachment
+                attachment_name = part.get_filename()
+                if attachment_name:
+                    filepath = os.path.join(folder_name, attachment_name)
+                    # download attachment and save it
+                    open(filepath, "wb").write(part.get_payload(decode=True))
+
+            # save jpg attachments
+            elif content_type == "image/jpeg":
                 # download attachment
                 attachment_name = part.get_filename()
                 if attachment_name:
