@@ -182,8 +182,6 @@ CONTENT:
         else:
             print(f"MESSAGE SKIPPED {idx + 1}")
 
-print(email_list)
-
 # write email summary to csv
 with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=csv_headers)
