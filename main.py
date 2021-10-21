@@ -1,5 +1,6 @@
 import mailbox
 import os
+import csv
 
 # set the message index
 msg_num = 1
@@ -15,6 +16,10 @@ if not os.path.isdir(dir_name):
     # make a folder for this email (named after the subject)
     os.mkdir(dir_name)
 
+# create a list to store information on each message to be written to csv
+csv_headers = ['Message', 'From', 'To', 'Date', 'Subject', 'Attachment', 'PNG', 'JPG']
+email_list = []
+
 # iterate over messages
 for idx, message in enumerate(mailbox.mbox(file_name)):
     # create a folder for the message
@@ -23,6 +28,19 @@ for idx, message in enumerate(mailbox.mbox(file_name)):
     if not os.path.isdir(folder_name):
         # make a folder for this email (named after the subject)
         os.mkdir(folder_name)
+
+    # add message to summary list for csv
+    msg_dict_temp = {
+        'Message': idx + 1,
+        'From': message['from'],
+        'To': message['to'],
+        'Date': message['date'],
+        'Subject': message['subject'],
+        'Attachment': "N",
+        'PNG': "N",
+        'JPG': "N"
+    }
+
 
     # add header info to full message
     full_message = f'''### ### ### Start Message {idx + 1} from {file_name} ### ### ### \n
@@ -94,6 +112,8 @@ CONTENT:
 
             # save png attachments
             elif content_type == "image/png":
+                # update email summary list
+                msg_dict_temp['PNG'] = "Y"
                 # download attachment
                 attachment_name = part.get_filename()
                 if attachment_name:
@@ -103,6 +123,8 @@ CONTENT:
 
             # save jpg attachments
             elif content_type == "image/jpeg":
+                # update email summary list
+                msg_dict_temp['JPG'] = "Y"
                 # download attachment
                 attachment_name = part.get_filename()
                 if attachment_name:
@@ -112,12 +134,17 @@ CONTENT:
 
             # save email attachment
             elif "attachment" in content_disposition:
+                # update email summary list
+                msg_dict_temp['Attachment'] = "Y"
                 # download attachment
                 attachment_name = part.get_filename()
                 if attachment_name:
                     filepath = os.path.join(folder_name, attachment_name)
                     # download attachment and save it
                     open(filepath, "wb").write(part.get_payload(decode=True))
+
+        # append final message dict to email summary list
+        email_list.append(msg_dict_temp)
 
     else:
         if message.get_content_type() == "text/plain":
@@ -154,3 +181,11 @@ CONTENT:
                 open(filepath, "a+").write(full_message_text)
         else:
             print(f"MESSAGE SKIPPED {idx + 1}")
+
+print(email_list)
+
+# write email summary to csv
+with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=csv_headers)
+    writer.writeheader()
+    writer.writerows(email_list)
