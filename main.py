@@ -25,7 +25,7 @@ for idx, message in enumerate(mailbox.mbox(file_name)):
         os.mkdir(folder_name)
 
     # add header info to full message
-    full_message = f'''### ### ### Start Message {idx + 1} from {file_name} ### ### ###
+    full_message = f'''### ### ### Start Message {idx + 1} from {file_name} ### ### ### \n
 TO: {message['to']}
 FROM: {message['from']}
 DATE: {message['date']}
@@ -53,19 +53,24 @@ CONTENT:
             # save plain text of email
             if content_type == "text/plain":
                 # add the body of the message
-                full_message_text = full_message + f"{body}" + "<-- -- END MESSAGE -- --> \n"
+                full_message_text = full_message + f"{body}"
 
                 # write the message to a file
                 # name the file
                 filename = f"msg-{idx + 1}.txt"
                 filepath = os.path.join(folder_name, filename)
-                # write the file
-                open(filepath, "a+").write(full_message_text)
+                # check if file exists to append
+                if os.path.exists(filepath):
+                    # append additional text to existing file
+                    open(filepath, "a").write(body)
+                else:
+                    # write the file
+                    open(filepath, "w").write(full_message_text)
 
             # save html text of email
             elif content_type == "text/html":
                 # add the body of the message
-                full_message_html = full_message + f"CONTENT: \n{body}" + "<-- -- END MESSAGE -- --> \n"
+                full_message_html = full_message + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
@@ -78,7 +83,7 @@ CONTENT:
             # BUG writes to wrong folder and wrong file name (+1)
             elif content_type == "multipart/mixed":
                 # add the body of the message
-                full_message_mixed = full_message + f"CONTENT: \n{body}" + "<-- -- END MESSAGE -- --> \n"
+                full_message_mixed = full_message + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
@@ -123,7 +128,7 @@ CONTENT:
                     body = part.get_payload(decode=True).decode()
                 except:
                     pass
-                full_message_text = full_message + f"{body}" + "<-- -- END MESSAGE -- --> \n"
+                full_message_text = full_message + f"{body}"
 
                 # write the message to a file
                 # name the file
@@ -139,7 +144,7 @@ CONTENT:
                     body = part.get_payload(decode=True).decode()
                 except:
                     pass
-                full_message_text = full_message + f"{body}" + "<-- -- END MESSAGE -- --> \n"
+                full_message_text = full_message + f"{body}"
 
                 # write the message to a file
                 # name the file
