@@ -6,12 +6,10 @@ mbox_process is a python script to process an mbox email file to save each messa
 
 The exported messages will include the sender, recipient, date received, subject, and email body in `.txt` (for plain/text messages) or `.html` (for plain/html messages) format. In addition to the message, any `png` or `jpg` images and attachments included in the email will be saved in the directory with the original message. Additional email metadata can be included by modifying the script.
 
-## Getting Started
-
 ### Dependencies
 
 * Tested and run in Python 3.9 an Python 3.10
-* Requires `mailbox`, `os`, and `csv` libraries, which are included in the standard Python library
+* Requires `mailbox`, `argparse`, `os`, and `csv` libraries, which are included in the standard Python library
 
 ### Executing program
 

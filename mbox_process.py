@@ -1,15 +1,39 @@
 import mailbox
 import os
 import csv
+import argparse
+
+############################
+### PARSE CLI ARGUEMENTS ###
+############################
+
+# Create the parser
+my_parser = argparse.ArgumentParser(description='List the content of a folder')
+
+# Add the arguments
+my_parser.add_argument('file_name',
+                       action='store',
+                       help='Name of file to be processed.')
+
+my_parser.add_argument('dir_name',
+                       action='store',
+                       help='Name of directory to store messages.')
+
+# Execute the parse_args() method
+args = my_parser.parse_args()
+
+###################################
+### PREPARE FOR FILE PROCESSING ###
+###################################
 
 # set the message index
 msg_num = 1
 
 # get filename from user
-file_name = input("What is the filename: ")
+file_name = args.file_name
 
 # get directory to store messages in from user
-dir_name = input("What is the directory name: ")
+dir_name = args.dir_name
 
 # check if the directory exists
 if not os.path.isdir(dir_name):
@@ -19,6 +43,10 @@ if not os.path.isdir(dir_name):
 # create a list to store information on each message to be written to csv
 csv_headers = ['Message', 'From', 'To', 'Date', 'Subject', 'Attachment', 'PNG', 'JPG']
 email_list = []
+
+#########################
+### PROCESS MBOX FILE ###
+#########################
 
 # iterate over messages
 for idx, message in enumerate(mailbox.mbox(file_name)):
