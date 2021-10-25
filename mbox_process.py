@@ -71,13 +71,22 @@ for idx, message in enumerate(mailbox.mbox(file_name)):
 
 
     # add header info to full message
-    full_message = f'''### ### ### Start Message {idx + 1} from {file_name} ### ### ### \n
+    full_message = f'''### ### ### Start Message  ### ### ### \n
 TO: {message['to']}
 FROM: {message['from']}
 DATE: {message['date']}
 SUBJECT: {message['subject']}
 
 CONTENT:
+    '''
+
+# add html header info to full message
+    html_header = f'''### ### ### Start Message  ### ### ### \n </br>
+TO: {message['to']}</br>
+FROM: {message['from']}</br>
+DATE: {message['date']}</br>
+SUBJECT: {message['subject']}</br>
+</br>
     '''
 
     # iterate through each message
@@ -116,7 +125,7 @@ CONTENT:
             # save html text of email
             elif content_type == "text/html":
                 # add the body of the message
-                full_message_html = full_message + f"CONTENT: \n{body}"
+                full_message_html = html_header + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
@@ -199,7 +208,7 @@ CONTENT:
                     body = part.get_payload(decode=True).decode()
                 except:
                     pass
-                full_message_text = full_message + f"{body}"
+                full_message_text = html_header + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
