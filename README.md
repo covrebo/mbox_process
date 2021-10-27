@@ -26,6 +26,8 @@ Directory
 |
 |---example.mbox
 |---example
+    |---ALL-example.txt
+    |---example.csv
     |---msg-1
     |   |---msg-1.txt
     |   |---msg-1.html
@@ -44,6 +46,8 @@ Directory
         |---screenshot.jpg
 ```
 * Notes on above example
+  * `ALL-example.txt` is a text file with all of the text from messages
+  * `example.csv` is a summary document that lists each message, the sender, receiver, subject, and if the message contains an attachment or images
   * `msg-1` is a multipart message with both `content_type` of `plain/text` and `plain/html`
   * `msg-2` is a message with only a `content_type` of `plain/text`
   * `msg-3` is a message with only a `content_type` of `plain/html`

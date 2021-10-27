@@ -44,6 +44,9 @@ if not os.path.isdir(dir_name):
 csv_headers = ['Message', 'From', 'To', 'Date', 'Subject', 'Attachment', 'PNG', 'JPG']
 email_list = []
 
+# create a complete list of all the email in one text string to create a file later
+all_messages_text = f'### ###  ALL MESSAGES  ### ### \n'
+
 #########################
 ### PROCESS MBOX FILE ###
 #########################
@@ -71,7 +74,7 @@ for idx, message in enumerate(mailbox.mbox(file_name)):
 
 
     # add header info to full message
-    full_message = f'''### ### ### Start Message  ### ### ### \n
+    full_message = f'''\n### ### ### Start Message {idx + 1}  ### ### ### \n
 TO: {message['to']}
 FROM: {message['from']}
 DATE: {message['date']}
@@ -81,7 +84,7 @@ CONTENT:
     '''
 
 # add html header info to full message
-    html_header = f'''### ### ### Start Message  ### ### ### \n </br>
+    html_header = f'''\n### ### ### Start Message {idx + 1}  ### ### ### \n </br>
 TO: {message['to']}</br>
 FROM: {message['from']}</br>
 DATE: {message['date']}</br>
@@ -109,6 +112,9 @@ SUBJECT: {message['subject']}</br>
             if content_type == "text/plain":
                 # add the body of the message
                 full_message_text = full_message + f"{body}"
+
+                # add the body of the message to the full emails variable
+                all_messages_text += full_message + f"{body}"
 
                 # write the message to a file
                 # name the file
@@ -194,6 +200,9 @@ SUBJECT: {message['subject']}</br>
                     pass
                 full_message_text = full_message + f"{body}"
 
+                # add the body of the message to the full emails variable
+                all_messages_text += full_message + f"{body}"
+
                 # write the message to a file
                 # name the file
                 filename = f"msg-{idx + 1}.txt"
@@ -210,6 +219,9 @@ SUBJECT: {message['subject']}</br>
                     pass
                 full_message_text = html_header + f"CONTENT: \n{body}"
 
+                # add the body of the message to the full emails variable
+                all_messages_text += full_message + f"{body}"
+
                 # write the message to a file
                 # name the file
                 filename = f"msg-{idx + 1}.html"
@@ -218,6 +230,13 @@ SUBJECT: {message['subject']}</br>
                 open(filepath, "a+").write(full_message_text)
         else:
             print(f"MESSAGE SKIPPED {idx + 1}")
+
+# write the full emails variable to a text file
+# name the file
+filename = f"ALL-{dir_name}.txt"
+filepath = os.path.join(dir_name, filename)
+# write the file
+open(filepath, "w").write(all_messages_text)
 
 # write email summary to csv
 with open(f'{dir_name}/{dir_name}.csv', 'w') as csvfile:
