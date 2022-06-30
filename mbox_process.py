@@ -52,7 +52,6 @@ email_list = []
 for idx, message in enumerate(mailbox.mbox(file_name)):
     # create a folder for the message
     folder_name = f"{dir_name}/msg-{idx + 1}"
-    prev_folder = f"{dir_name}/msg-{idx}"
     if not os.path.isdir(folder_name):
         # make a folder for this email (named after the subject)
         os.mkdir(folder_name)
@@ -102,8 +101,11 @@ SUBJECT: {message['subject']}</br>
             try:
                 # get the email body
                 body = part.get_payload(decode=True).decode()
-            except:
-                pass
+            except Exception as e:
+                # set body otherwise it will have the last value during an exception
+                # TODO: Handle exceptions from get_payload and decode the data
+                body = str(e)
+                print(f"Exception in {idx + 1}: {body}")
 
             # save plain text of email
             if content_type == "text/plain":
@@ -135,15 +137,14 @@ SUBJECT: {message['subject']}</br>
                 open(filepath, "a+").write(full_message_html)
 
             # multipart/mixed messages
-            # BUG writes to wrong folder and wrong file name (+1)
             elif content_type == "multipart/mixed":
                 # add the body of the message
                 full_message_mixed = full_message + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx}-mxd.html"
-                filepath = os.path.join(prev_folder, filename)
+                filename = f"msg-{idx + 1}-mxd.html"
+                filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "w").write(full_message_mixed)
 
