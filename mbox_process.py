@@ -2,6 +2,7 @@ import mailbox
 import os
 import csv
 import argparse
+import sys
 
 ############################
 ### PARSE CLI ARGUEMENTS ###
@@ -94,10 +95,15 @@ SUBJECT: {message['subject']}</br>
         for part in message.walk():
             # get email content
             content_type = part.get_content_type()
-            content_disposition = str(part.get("Content-Disposition"))
-            # print(f"Msg: {idx +1}")
-            # print(content_type)
-            # print(content_disposition)
+            content_disposition = str(part.get("Content-Disposition")).replace('\n',' ')
+            content_charset = part.get_content_charset()
+            if content_charset is None:
+                # Python needs a charset, so pick a suitable default if none provided
+                content_charset = "iso-8859-1"
+            elif content_charset == "us-ascii" or content_charset == "ascii":
+                # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
+                content_charset = "iso-8859-1"
+            print(f"Msg {idx + 1}: get_content_type={content_type}, Content-Disposition={content_disposition}, get_content_charset={part.get_content_charset()}-->{content_charset}")
             payload = part.get_payload(decode=True)
             # https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.get_payload
             # "If the message is a multipart and the decode flag is True, then None is returned."
@@ -106,13 +112,12 @@ SUBJECT: {message['subject']}</br>
                 # print(f"Skipping None multipart payload")
                 continue
             try:
-                # get the email body
-                body = payload.decode()
+                body = payload.decode(encoding=content_charset)
             except Exception as e:
-                # set body otherwise it will have the last value during an exception
-                # TODO: Handle exceptions from get_payload and decode the data
-                body = str(e)
                 print(f"Exception in {idx + 1}: {body}")
+                # Fail on exceptions, but could alternative skip and go to the next part
+                sys.exit(1)
+                # continue
 
             # save plain text of email
             if content_type == "text/plain":
