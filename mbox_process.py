@@ -98,9 +98,16 @@ SUBJECT: {message['subject']}</br>
             # print(f"Msg: {idx +1}")
             # print(content_type)
             # print(content_disposition)
+            payload = part.get_payload(decode=True)
+            # https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.get_payload
+            # "If the message is a multipart and the decode flag is True, then None is returned."
+            if payload is None:
+                # Skip this part because payload.decode() will fail otherwise
+                # print(f"Skipping None multipart payload")
+                continue
             try:
                 # get the email body
-                body = part.get_payload(decode=True).decode()
+                body = payload.decode()
             except Exception as e:
                 # set body otherwise it will have the last value during an exception
                 # TODO: Handle exceptions from get_payload and decode the data
