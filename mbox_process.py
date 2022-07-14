@@ -2,6 +2,7 @@ import mailbox
 import os
 import csv
 import argparse
+import sys
 
 ############################
 ### PARSE CLI ARGUEMENTS ###
@@ -52,7 +53,6 @@ email_list = []
 for idx, message in enumerate(mailbox.mbox(file_name)):
     # create a folder for the message
     folder_name = f"{dir_name}/msg-{idx + 1}"
-    prev_folder = f"{dir_name}/msg-{idx}"
     if not os.path.isdir(folder_name):
         # make a folder for this email (named after the subject)
         os.mkdir(folder_name)
@@ -95,15 +95,29 @@ SUBJECT: {message['subject']}</br>
         for part in message.walk():
             # get email content
             content_type = part.get_content_type()
-            content_disposition = str(part.get("Content-Disposition"))
-            # print(f"Msg: {idx +1}")
-            # print(content_type)
-            # print(content_disposition)
+            content_disposition = str(part.get("Content-Disposition")).replace('\n',' ')
+            content_charset = part.get_content_charset()
+            if content_charset is None:
+                # Python needs a charset, so pick a suitable default if none provided
+                content_charset = "iso-8859-1"
+            elif content_charset == "us-ascii" or content_charset == "ascii":
+                # Some emails in us-ascii actually contain non-ascii data, so pick a more useful charset to handle this
+                content_charset = "iso-8859-1"
+            print(f"Msg {idx + 1}: get_content_type={content_type}, Content-Disposition={content_disposition}, get_content_charset={part.get_content_charset()}-->{content_charset}")
+            payload = part.get_payload(decode=True)
+            # https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.get_payload
+            # "If the message is a multipart and the decode flag is True, then None is returned."
+            if payload is None:
+                # Skip this part because payload.decode() will fail otherwise
+                # print(f"Skipping None multipart payload")
+                continue
             try:
-                # get the email body
-                body = part.get_payload(decode=True).decode()
-            except:
-                pass
+                body = payload.decode(encoding=content_charset)
+            except Exception as e:
+                print(f"Exception in {idx + 1}: {body}")
+                # Fail on exceptions, but could alternative skip and go to the next part
+                sys.exit(1)
+                # continue
 
             # save plain text of email
             if content_type == "text/plain":
@@ -135,15 +149,14 @@ SUBJECT: {message['subject']}</br>
                 open(filepath, "a+").write(full_message_html)
 
             # multipart/mixed messages
-            # BUG writes to wrong folder and wrong file name (+1)
             elif content_type == "multipart/mixed":
                 # add the body of the message
                 full_message_mixed = full_message + f"CONTENT: \n{body}"
 
                 # write the message to a file
                 # name the file
-                filename = f"msg-{idx}-mxd.html"
-                filepath = os.path.join(prev_folder, filename)
+                filename = f"msg-{idx + 1}-mxd.html"
+                filepath = os.path.join(folder_name, filename)
                 # write the file
                 open(filepath, "w").write(full_message_mixed)
 
